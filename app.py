@@ -78,3 +78,9 @@ if show_name:
 
     except Exception as e:
         st.error(f"Error fetching show: {e}")
+
+        # At the very bottom of your app.py
+st.markdown(
+    "<sub>Data source: TVMaze API (https://www.tvmaze.com/api)</sub>",
+    unsafe_allow_html=True
+)
