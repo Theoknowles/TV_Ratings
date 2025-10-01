@@ -35,26 +35,45 @@ def create_rating_grid(df):
 # -----------------------
 # Streamlit App
 # -----------------------
-st.title("📺 TV Show Episode Ratings by Season")
+st.title("📺 TV Show Ratings Explorer")
 
-show_name_input = st.text_input("Enter a TV show name:")
+# Input: Show name
+show_name = st.text_input("Enter a TV show name:")
 
-if show_name_input:
+if show_name:
     try:
-        df, show_name = get_show_episodes(show_name_input)
-        st.subheader(f"Episode Ratings for '{show_name}'")
+        # Search for the show
+        search_url = f"https://api.tvmaze.com/singlesearch/shows?q={show_name}&embed=episodes"
+        response = requests.get(search_url)
+        response.raise_for_status()
+        data = response.json()
 
-        # Compute season averages
-        season_avg = df.groupby('season')['rating'].mean().round(2)
-        st.markdown("**Average Rating per Season:**")
-        st.dataframe(season_avg)
+        # Show title and summary
+        st.header(data["name"])
+        if data.get("image"):
+            st.image(data["image"]["medium"], width=200)  # Show poster
 
-        # Create grid
-        grid = create_rating_grid(df)
-        st.markdown("**Episode Ratings Grid:**")
-        
-        # Color-code cells using background gradient
-        st.dataframe(grid.style.background_gradient(cmap='YlGnBu', axis=None).format("{:.1f}"))
+        # Extract episodes
+        episodes = data["_embedded"]["episodes"]
+        df = pd.DataFrame(episodes)[["season", "number", "name", "rating"]]
+
+        # Flatten rating dict
+        df["rating"] = df["rating"].apply(lambda r: r["average"] if isinstance(r, dict) else None)
+
+        # Show dataframe
+        st.subheader("Episode Ratings")
+        st.dataframe(df[["season", "number", "name", "rating"]])
+
+        # Plot ratings by season
+        st.subheader("📊 Ratings by Season")
+        fig, ax = plt.subplots()
+        for season, group in df.groupby("season"):
+            ax.plot(group["number"], group["rating"], marker="o", label=f"Season {season}")
+        ax.set_xlabel("Episode")
+        ax.set_ylabel("Average Rating")
+        ax.set_title(f"Ratings for {data['name']}")
+        ax.legend()
+        st.pyplot(fig)
 
     except Exception as e:
         st.error(f"Error fetching show: {e}")
