@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import requests
 import pandas as pd
@@ -26,7 +25,7 @@ def get_show_episodes(show_name):
     df['episode_number'] = df['number'].astype(int)
     df['rating'] = df['rating'].apply(lambda x: x['average'] if x and x['average'] else None)
     df = df[['season', 'episode_number', 'name', 'rating']]
-    return df, show['name']
+    return df, show
 
 def create_rating_grid(df):
     """Pivot DataFrame into a season vs episode grid."""
@@ -36,7 +35,7 @@ def create_rating_grid(df):
 # -----------------------
 # Streamlit App
 # -----------------------
-st.title("  📺 TV Show Ratings Explorer")
+st.title("📺 TV Show Ratings Explorer")
 
 # Input: Show name
 show_name = st.text_input("Enter a TV show name:")
@@ -49,11 +48,6 @@ if show_name:
         response.raise_for_status()
         data = response.json()
 
-        # Show title and summary
-        st.header(data["name"])
-        if data.get("image"):
-            st.image(data["image"]["medium"], width=200)  # Show poster
-
         # Extract episodes
         episodes = data["_embedded"]["episodes"]
         df = pd.DataFrame(episodes)[["season", "number", "name", "rating"]]
@@ -61,33 +55,46 @@ if show_name:
         # Flatten rating dict
         df["rating"] = df["rating"].apply(lambda r: r["average"] if isinstance(r, dict) else None)
 
-        # Show dataframe
+        # Prepare data for grid
+        df2, show_info = get_show_episodes(show_name)
+        grid = create_rating_grid(df2)
 
-        # Plot ratings by season
-        st.subheader("📊 Ratings by Season")
-        fig, ax = plt.subplots()
-        for season, group in df.groupby("season"):
-            ax.plot(group["number"], group["rating"], marker="o", label=f"Season {season}")
-        ax.set_xlabel("Episode")
-        ax.set_ylabel("Average Rating")
-        ax.set_title(f"Ratings for {data['name']}")
-        ax.legend()
-        st.pyplot(fig)
+        # -----------------------
+        # Tabs
+        # -----------------------
+        tab1, tab2, tab3 = st.tabs(["ℹ️ Show Info", "📊 Ratings Chart", "🗂 Ratings Grid"])
 
-        df, show_name = get_show_episodes(show_name)
-        st.subheader(f"Episode Ratings for '{show_name}'")
+        with tab1:
+            st.header(show_info["name"])
+            if show_info.get("image"):
+                st.image(show_info["image"]["medium"], width=200)
+            if show_info.get("summary"):
+                st.markdown(show_info["summary"], unsafe_allow_html=True)
+            st.markdown(f"**Genres:** {', '.join(show_info.get('genres', []))}")
+            st.markdown(f"**Premiered:** {show_info.get('premiered', 'N/A')}")
+            st.markdown(f"**Runtime:** {show_info.get('runtime', 'N/A')} minutes")
+            st.markdown(f"**Official Site:** [{show_info.get('officialSite', 'N/A')}]({show_info.get('officialSite')})")
 
+        with tab2:
+            st.subheader("Ratings by Season")
+            fig, ax = plt.subplots()
+            for season, group in df.groupby("season"):
+                ax.plot(group["number"], group["rating"], marker="o", label=f"Season {season}")
+            ax.set_xlabel("Episode")
+            ax.set_ylabel("Average Rating")
+            ax.set_title(f"Ratings for {data['name']}")
+            ax.legend()
+            st.pyplot(fig)
 
-        grid = create_rating_grid(df)
-        st.markdown("**Episode Ratings Grid:**")
-        
-        # Color-code cells using background gradient
-        st.dataframe(grid.style.background_gradient(cmap='YlGn', axis=None).format("{:.1f}"))
+        with tab3:
+            st.subheader(f"Episode Ratings for '{show_info['name']}'")
+            st.markdown("**Episode Ratings Grid:**")
+            st.dataframe(grid.style.background_gradient(cmap='YlGn', axis=None).format("{:.1f}"))
 
     except Exception as e:
         st.error(f"Error fetching show: {e}")
 
-        # At the very bottom of your app.py
+# Footer
 st.markdown(
     "<sub>Data source: TVMaze API (https://www.tvmaze.com/api)</sub>",
     unsafe_allow_html=True
