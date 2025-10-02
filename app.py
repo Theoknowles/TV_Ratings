@@ -36,7 +36,7 @@ def create_rating_grid(df):
 # -----------------------
 # Streamlit App
 # -----------------------
-st.title("📺 TV Show Ratings Explorer")
+st.title("  📺 TV Show Ratings Explorer")
 
 # Input: Show name
 show_name = st.text_input("Enter a TV show name:")
@@ -62,8 +62,6 @@ if show_name:
         df["rating"] = df["rating"].apply(lambda r: r["average"] if isinstance(r, dict) else None)
 
         # Show dataframe
-        st.subheader("Episode Ratings")
-        st.dataframe(df[["season", "number", "name", "rating"]])
 
         # Plot ratings by season
         st.subheader("📊 Ratings by Season")
@@ -76,11 +74,15 @@ if show_name:
         ax.legend()
         st.pyplot(fig)
 
+        df, show_name = get_show_episodes(show_name)
+        st.subheader(f"Episode Ratings for '{show_name}'")
+
+
         grid = create_rating_grid(df)
         st.markdown("**Episode Ratings Grid:**")
         
         # Color-code cells using background gradient
-        st.dataframe(grid.style.background_gradient(cmap='YlGnBu', axis=None).format("{:.1f}"))
+        st.dataframe(grid.style.background_gradient(cmap='YlGn', axis=None).format("{:.1f}"))
 
     except Exception as e:
         st.error(f"Error fetching show: {e}")
