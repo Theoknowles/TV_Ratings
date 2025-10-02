@@ -36,7 +36,7 @@ def create_rating_grid(df):
 # -----------------------
 # Streamlit App
 # -----------------------
-st.title("📺 TV Show Ratings Explorer")
+st.title("  📺 TV Show Ratings Explorer")
 
 # Input: Show name
 show_name = st.text_input("Enter a TV show name:")
@@ -75,6 +75,14 @@ if show_name:
         ax.set_title(f"Ratings for {data['name']}")
         ax.legend()
         st.pyplot(fig)
+
+        df, show_name = get_show_episodes(show_name_input)
+        st.subheader(f"Episode Ratings for '{show_name}'")
+
+        # Compute season averages
+        season_avg = df.groupby('season')['rating'].mean().round(2)
+        st.markdown("**Average Rating per Season:**")
+        st.dataframe(season_avg)
 
         grid = create_rating_grid(df)
         st.markdown("**Episode Ratings Grid:**")
