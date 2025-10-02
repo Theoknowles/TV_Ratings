@@ -79,13 +79,7 @@ if show_name:
         df, show_name = get_show_episodes(show_name)
         st.subheader(f"Episode Ratings for '{show_name}'")
 
-        # Compute season averages
-        season_avg = df.groupby('season')['rating'].mean().round(2)
-        st.markdown("**Average Rating per Season:**")
-        st.dataframe(season_avg)
 
-        grid = create_rating_grid(df)
-        st.markdown("**Episode Ratings Grid:**")
         
         # Color-code cells using background gradient
         st.dataframe(grid.style.background_gradient(cmap='YlGnBu', axis=None).format("{:.1f}"))
