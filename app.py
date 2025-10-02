@@ -82,7 +82,7 @@ if show_name:
         st.markdown("**Episode Ratings Grid:**")
         
         # Color-code cells using background gradient
-        st.dataframe(grid.style.background_gradient(cmap='YlGnBu', axis=None).format("{:.1f}"))
+        st.dataframe(grid.style.background_gradient(cmap='YlGn', axis=None).format("{:.1f}"))
 
     except Exception as e:
         st.error(f"Error fetching show: {e}")
