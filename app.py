@@ -62,8 +62,6 @@ if show_name:
         df["rating"] = df["rating"].apply(lambda r: r["average"] if isinstance(r, dict) else None)
 
         # Show dataframe
-        st.subheader("Episode Ratings")
-        st.dataframe(df[["season", "number", "name", "rating"]])
 
         # Plot ratings by season
         st.subheader("📊 Ratings by Season")
