@@ -76,7 +76,7 @@ if show_name:
         ax.legend()
         st.pyplot(fig)
 
-        df, show_name = get_show_episodes(show_name_input)
+        df, show_name = get_show_episodes(show_name)
         st.subheader(f"Episode Ratings for '{show_name}'")
 
         # Compute season averages
