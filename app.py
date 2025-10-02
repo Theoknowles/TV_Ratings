@@ -80,6 +80,8 @@ if show_name:
         st.subheader(f"Episode Ratings for '{show_name}'")
 
 
+        grid = create_rating_grid(df)
+        st.markdown("**Episode Ratings Grid:**")
         
         # Color-code cells using background gradient
         st.dataframe(grid.style.background_gradient(cmap='YlGnBu', axis=None).format("{:.1f}"))
